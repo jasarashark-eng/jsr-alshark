@@ -1,11 +1,21 @@
-
-
 import rawSite from '../data/site.json';
 import rawProfiles from '../data/profiles.json';
 import rawNews from '../data/news.json';
 import { SiteSchema, ProfileSchema, NewsSchema } from './schema';
 import { assetUrl, webUrl, telLink } from './urls';
-export const site = SiteSchema.parse(rawSite);
+
+const parsedSite = SiteSchema.parse(rawSite);
+const primaryInternational = '+966530720010';
+const primaryWhatsapp = '966530720010';
+const primaryPhones = parsedSite.phones.filter(phone => phone.international === primaryInternational);
+const secondaryPhones = parsedSite.phones.filter(phone => phone.international !== primaryInternational);
+
+// Presentation-only override requested by the client. CMS files remain untouched.
+export const site = {
+  ...parsedSite,
+  phones: [...primaryPhones, ...secondaryPhones],
+  whatsapp: primaryWhatsapp,
+};
 export const profiles = ProfileSchema.array().parse(rawProfiles).filter(p => p.published && p.file);
 export const news = NewsSchema.array().parse(rawNews).filter(n => n.published).sort((a,b) => b.date.localeCompare(a.date));
 export const waLink = (message = '') => 'https://wa.me/' + site.whatsapp + (message ? '?text=' + encodeURIComponent(message) : '');
